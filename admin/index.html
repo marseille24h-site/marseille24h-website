@@ -104,6 +104,8 @@ small{color:#61758a}
 </div>
 <button type="submit">Lưu bản nháp</button>
 <button type="button" id="approve" class="success">Phê duyệt bài</button>
+ <button type="button" id="publishFacebook" class="success">
+  Xuất bản lên Facebook</button>
 <button type="button" id="clear" class="secondary">Bài mới</button>
 </form>
 </div>
@@ -255,6 +257,71 @@ $("articleForm").onsubmit=async e=>{
 };
 $("approve").onclick=()=>save("approved");
 $("refresh").onclick=loadArticles;
+ 
+$("publishFacebook").onclick = async () => {
+  if (!isAdmin) return;
+
+  const articleId = $("articleId").value;
+
+  if (!articleId) {
+    notice("Hãy chọn bài viết đã duyệt.");
+    return;
+  }
+
+  const article = articleCache.find(a => a.id === articleId);
+
+  if (!article || article.status !== "approved") {
+    notice("Chỉ được xuất bản bài đã phê duyệt.");
+    return;
+  }
+
+  if (!confirm("Xuất bản bài này lên Facebook Marseille24h?")) {
+    return;
+  }
+
+  const button = $("publishFacebook");
+  button.disabled = true;
+
+  try {
+    const { data: { session } } = await db.auth.getSession();
+
+    if (!session) {
+      notice("Phiên đăng nhập đã hết hạn.");
+      return;
+    }
+
+    const response = await fetch(
+      "/.netlify/functions/publish-facebook",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          articleId,
+          confirmPublish: true
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      notice(result.error || "Xuất bản thất bại.");
+      return;
+    }
+
+    notice("Đã gửi bài lên Facebook thành công.");
+    await loadArticles();
+
+  } catch {
+    notice("Không thể kết nối hệ thống xuất bản.");
+  } finally {
+    button.disabled = false;
+  }
+};
+
 
 async function loadArticles(){
  if(!isAdmin)return;
