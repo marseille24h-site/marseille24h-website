@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Marseille 24H – Tin tức và đời sống dành cho cộng đồng người Việt tại Marseille.">
+  <title>Marseille 24H – Tin tức & Đời sống</title>
+  <style>
+    :root {color-scheme:light; --navy:#102842; --blue:#155f9b; --paper:#f3f6f9; --red:#d82734;}
+    * {box-sizing:border-box;} body{margin:0;background:var(--paper);color:#17293a;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;line-height:1.6}
+    .top{background:var(--navy);color:white}.wrap{width:min(1100px,calc(100% - 36px));margin:auto}
+    header .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:24px 0}
+    .brand{font-size:clamp(26px,5vw,39px);font-weight:850;letter-spacing:-1px}.brand span{color:#ff545f}
+    .strap{font-size:13px;color:#bdcedd}nav{background:#fff;border-bottom:1px solid #dde5ec} nav .wrap{display:flex;flex-wrap:wrap;gap:4px 24px;padding:13px 0} nav a{color:var(--navy);text-decoration:none;font-weight:650;font-size:14px}
+    main{padding:35px 0 65px} .eyebrow{color:var(--red);font-size:13px;font-weight:800;letter-spacing:1.7px;text-transform:uppercase}
+    .hero{padding:44px;background:linear-gradient(120deg,#143f68,#102842);border-radius:18px;color:white;box-shadow:0 10px 32px #12304a13}
+    h1{font-size:clamp(28px,4.5vw,48px);line-height:1.15;margin:14px 0 16px;max-width:760px} .hero p{max-width:730px;color:#e1eaf3;font-size:17px}
+    .section{margin-top:40px} h2{font-size:25px;margin:0 0 18px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+    article{padding:25px;border:1px solid #dde5ec;border-radius:14px;background:white} article h3{margin:10px 0 12px;font-size:20px;line-height:1.3}article p{font-size:14px;color:#51677a} .pill{color:#07568a;background:#e6f3fb;border-radius:4px;display:inline-block;padding:3px 9px;font-size:12px;font-weight:750}
+    .notice{padding:22px;border-radius:10px;background:#e9f1f7;border-left:4px solid var(--blue);margin-top:30px}
+    footer{padding:28px 0;background:#102842;color:#d4e0ea;font-size:13px}footer a{color:white}
+    @media(max-width:760px){.grid{grid-template-columns:1fr}.hero{padding:28px}header .wrap{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+  <div class="top"><header class="wrap"><div><div class="brand">MARSEILLE <span>24H</span></div><div class="strap">Tin Tức & Đời Sống · Cộng đồng người Việt tại Marseille</div></div><div class="strap">Thông tin có nguồn · Biên tập có kiểm chứng</div></header></div>
+  <nav aria-label="Chuyên mục"><div class="wrap"><a href="#trangchu">Trang chủ</a><a href="#tinmoi">Tin mới</a><a href="#tinmoi">Giao thông</a><a href="#tinmoi">Pháp luật</a><a href="#tinmoi">Đời sống</a><a href="#congdong">Cộng đồng Việt</a></div></nav>
+  <main class="wrap" id="trangchu"><section class="hero"><div class="eyebrow" style="color:#ff9198">Marseille 24H</div><h1>Góc nhìn Việt về nhịp sống Marseille</h1><p>Tin tức địa phương, thay đổi giao thông, an ninh, đời sống và thông tin thiết thực dành cho cộng đồng người Việt tại Marseille, Pháp.</p></section>
+  <section id="tinmoi" class="section"><h2>Chuyên mục tin tức</h2><div class="grid"><article><span class="pill">Giao thông</span><h3>Metro, tramway và xe buýt</h3><p>Cập nhật tình hình vận tải công cộng từ các nguồn chính thức sau khi được biên tập và xác minh.</p></article><article><span class="pill">Tin địa phương</span><h3>Marseille hôm nay</h3><p>Tin nổi bật về thành phố Marseille và khu vực Provence-Alpes-Côte d’Azur.</p></article><article id="congdong"><span class="pill">Cộng đồng</span><h3>Người Việt tại Marseille</h3><p>Thông tin sinh hoạt, hoạt động cộng đồng và những điều cần biết khi sống tại Pháp.</p></article></div></section>
+  <aside class="notice"><strong>Website đang được xây dựng.</strong> Các mục trên là phần giới thiệu chuyên mục, chưa phải bản tin thời sự. Tin tức chỉ được xuất bản sau khi kiểm chứng nguồn và phê duyệt nội dung.</aside></main>
+  <footer><div class="wrap">© <span id="year">2026</span> Marseille 24H. Nội dung được biên tập và kiểm chứng trước khi xuất bản. · <a href="mailto:contact@example.invalid" onclick="return false" title="Thông tin liên hệ sẽ được bổ sung">Liên hệ (sắp cập nhật)</a></div></footer>
+  <script>document.getElementById('year').textContent=new Date().getFullYear()</script>
+</body></html>
