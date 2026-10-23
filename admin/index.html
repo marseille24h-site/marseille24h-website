@@ -1,0 +1,320 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Marseille24h | Quản trị</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#eef3f8;color:#142b45;font:15px Arial,sans-serif}
+header{background:#102945;color:white;padding:23px 6%}
+header h1{margin:0;font-size:27px}
+header span{color:#ff526b}
+main{max-width:1050px;margin:30px auto;padding:0 18px}
+.card{background:white;padding:25px;border-radius:13px;margin-bottom:20px;box-shadow:0 3px 16px #11223312}
+input,textarea,select{width:100%;padding:12px;margin:8px 0 16px;border:1px solid #cad5e0;border-radius:7px;font:inherit}
+textarea{min-height:200px;resize:vertical}
+button{background:#1263a7;color:white;border:0;border-radius:7px;padding:12px 17px;cursor:pointer;margin:4px}
+button:hover{background:#0d477a}
+button:disabled{opacity:.5;cursor:not-allowed}
+.secondary{background:#61758a}
+.success{background:#147c57}
+.danger{background:#ab3342}
+.hidden{display:none}
+#notice{white-space:pre-wrap;color:#176b52;margin:15px 0}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row>*{flex:1}
+.article{padding:15px;border-bottom:1px solid #e1e8ef}
+.article strong{display:block;margin-bottom:6px}
+small{color:#61758a}
+</style>
+</head>
+<body>
+<header>
+<h1>MARSEILLE<span>24H</span></h1>
+<p>Hệ thống quản trị tin tức</p>
+</header>
+<main>
+<p id="notice" role="status"></p>
+
+<section id="login" class="card">
+<h2>Đăng nhập quản trị</h2>
+<form id="loginForm">
+<label>Email</label>
+<input id="email" type="email" required autocomplete="email">
+<label>Mật khẩu</label>
+<input id="password" type="password" required autocomplete="current-password">
+<button type="submit">Đăng nhập</button>
+</form>
+<button id="forgot" class="secondary">Quên / đặt mật khẩu</button>
+</section>
+
+<section id="reset" class="card hidden">
+<h2>Thiết lập mật khẩu</h2>
+<form id="resetForm">
+<label>Mật khẩu mới (ít nhất 12 ký tự)</label>
+<input id="newPassword" type="password" minlength="12" required autocomplete="new-password">
+<button type="submit">Lưu mật khẩu mới</button>
+</form>
+</section>
+
+<section id="dashboard" class="hidden">
+<div class="card">
+<h2>Bảng điều khiển Marseille24h</h2>
+<p id="currentUser"></p>
+<button id="logout" class="secondary">Đăng xuất</button>
+</div>
+
+<div class="card">
+<h2>Soạn bài viết</h2>
+<form id="articleForm">
+<input id="articleId" type="hidden">
+<label>Tiêu đề</label>
+<input id="title" required maxlength="250">
+<label>Tóm tắt</label>
+<textarea id="summary" style="min-height:85px"></textarea>
+<label>Nội dung bài viết</label>
+<textarea id="content" required></textarea>
+<div class="row">
+<div>
+<label>Chuyên mục</label>
+<select id="category">
+<option>Tin mới</option>
+<option>Giao thông</option>
+<option>Pháp luật</option>
+<option>Đời sống</option>
+<option>Cộng đồng Việt</option>
+</select>
+</div>
+<div>
+<label>Ảnh (URL)</label>
+<input id="imageUrl" type="url">
+</div>
+</div>
+<div class="row">
+<div>
+<label>Nguồn tin</label>
+<input id="sourceName">
+</div>
+<div>
+<label>Link nguồn</label>
+<input id="sourceUrl" type="url">
+</div>
+</div>
+<button type="submit">Lưu bản nháp</button>
+<button type="button" id="approve" class="success">Phê duyệt bài</button>
+<button type="button" id="clear" class="secondary">Bài mới</button>
+</form>
+</div>
+
+<div class="card">
+<h2>Danh sách bài viết</h2>
+<button id="refresh">Làm mới</button>
+<div id="articles"></div>
+</div>
+</section>
+</main>
+
+<script type="module">
+import { createClient } from
+ "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL =
+ "https://reyhvuqmyxypgjlmzdir.supabase.co";
+const SUPABASE_KEY =
+ "DAN_PUBLISHABLE_KEY_VAO_DAY";
+
+const db = createClient(SUPABASE_URL,SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+const notice = message => $("notice").textContent=message;
+
+let isAdmin=false;
+let recovery=false;
+let articleCache=[];
+
+function view(id){
+ for(const name of ["login","reset","dashboard"])
+  $(name).classList.toggle("hidden",name!==id);
+}
+
+async function checkLogin(){
+ const {data:{user},error}=await db.auth.getUser();
+ if(error || !user){isAdmin=false;view("login");return;}
+ const result=await db.from("admins")
+   .select("user_id").eq("user_id",user.id).maybeSingle();
+ if(result.error || !result.data){
+   isAdmin=false;
+   view("login");
+   notice("Tài khoản chưa được cấp quyền quản trị.");
+   return;
+ }
+ isAdmin=true;
+ $("currentUser").textContent=user.email;
+ view("dashboard");
+ await loadArticles();
+}
+
+$("loginForm").onsubmit=async e=>{
+ e.preventDefault();
+ const {error}=await db.auth.signInWithPassword({
+  email:$("email").value.trim(),
+  password:$("password").value
+ });
+ if(error){notice(error.message);return;}
+ notice("Đăng nhập thành công.");
+ await checkLogin();
+};
+
+$("forgot").onclick=async()=>{
+ const email=$("email").value.trim();
+ if(!email){notice("Hãy nhập email trước.");return;}
+ const {error}=await db.auth.resetPasswordForEmail(email,{
+  redirectTo:location.origin+"/admin/"
+ });
+ notice(error?error.message:
+  "Nếu email hợp lệ, hãy kiểm tra thư đặt lại mật khẩu.");
+};
+
+db.auth.onAuthStateChange((event)=>{
+ if(event==="PASSWORD_RECOVERY"){
+  recovery=true;
+  view("reset");
+  notice("Hãy nhập mật khẩu mới.");
+ }
+});
+
+$("resetForm").onsubmit=async e=>{
+ e.preventDefault();
+ const {error}=await db.auth.updateUser({
+  password:$("newPassword").value
+ });
+ if(error){notice(error.message);return;}
+ recovery=false;
+ notice("Đã cập nhật mật khẩu.");
+ await checkLogin();
+};
+
+$("logout").onclick=async()=>{
+ await db.auth.signOut();
+ isAdmin=false;
+ view("login");
+ notice("Đã đăng xuất.");
+};
+
+function formData(){
+ return {
+  title:$("title").value.trim(),
+  summary:$("summary").value.trim(),
+  content:$("content").value.trim(),
+  category:$("category").value,
+  image_url:$("imageUrl").value.trim()||null,
+  source_name:$("sourceName").value.trim(),
+  source_url:$("sourceUrl").value.trim()||null
+ };
+}
+
+function clearForm(){
+ $("articleForm").reset();
+ $("articleId").value="";
+}
+
+$("clear").onclick=clearForm;
+
+async function save(status){
+ if(!isAdmin)return;
+ const article=formData();
+ if(!article.title || !article.content){
+  notice("Cần nhập tiêu đề và nội dung.");return;
+ }
+ const id=$("articleId").value;
+ const payload={
+  ...article,
+  status,
+  ...(status==="published" ? {published_at:new Date().toISOString()} : {})
+ };
+ let result;
+ if(id){
+  result=await db.from("articles")
+   .update(payload).eq("id",id).select().single();
+ }else{
+  const {data:{user}}=await db.auth.getUser();
+  result=await db.from("articles")
+   .insert({...payload,created_by:user.id})
+   .select().single();
+ }
+ if(result.error){notice(result.error.message);return;}
+ $("articleId").value=result.data.id;
+ notice(status==="approved"?"Đã phê duyệt bài.":"Đã lưu bản nháp.");
+ await loadArticles();
+}
+
+$("articleForm").onsubmit=async e=>{
+ e.preventDefault();
+ await save("draft");
+};
+$("approve").onclick=()=>save("approved");
+$("refresh").onclick=loadArticles;
+
+async function loadArticles(){
+ if(!isAdmin)return;
+ const {data,error}=await db.from("articles")
+  .select("*").order("created_at",{ascending:false});
+ if(error){notice(error.message);return;}
+ articleCache=data||[];
+ const list=$("articles");
+ list.replaceChildren();
+ if(!articleCache.length){
+  list.textContent="Chưa có bài viết.";
+  return;
+ }
+ for(const article of articleCache){
+  const div=document.createElement("div");
+  div.className="article";
+  const name=document.createElement("strong");
+  name.textContent=article.title;
+  const details=document.createElement("small");
+  details.textContent=`${article.category} | ${article.status}`;
+  const edit=document.createElement("button");
+  edit.textContent="Chỉnh sửa";
+  edit.onclick=()=>editArticle(article.id);
+  div.append(name,details,document.createElement("br"),edit);
+  list.append(div);
+ }
+}
+
+function editArticle(id){
+ const a=articleCache.find(x=>x.id===id);
+ if(!a)return;
+ $("articleId").value=a.id;
+ $("title").value=a.title||"";
+ $("summary").value=a.summary||"";
+ $("content").value=a.content||"";
+ $("category").value=a.category||"Tin mới";
+ $("imageUrl").value=a.image_url||"";
+ $("sourceName").value=a.source_name||"";
+ $("sourceUrl").value=a.source_url||"";
+ window.scrollTo({top:0,behavior:"smooth"});
+ notice("Đang chỉnh sửa: "+a.title);
+}
+
+async function init(){
+ if(SUPABASE_KEY==="DAN_PUBLISHABLE_KEY_VAO_DAY"){
+  notice("Chưa cấu hình Supabase Publishable key.");
+  return;
+ }
+ const {data:{session}}=await db.auth.getSession();
+ const hash=new URLSearchParams(location.hash.slice(1));
+ const query=new URLSearchParams(location.search);
+ if(hash.get("type")==="recovery" ||
+    query.get("type")==="recovery"){
+  recovery=true;
+ }
+ if(recovery && session){view("reset");return;}
+ if(session)await checkLogin();
+ else view("login");
+}
+init();
+</script>
+</body>
+</html>
