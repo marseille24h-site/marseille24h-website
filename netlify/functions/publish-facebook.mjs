@@ -1,4 +1,4 @@
-netlify/functions/publish-facebook.mjs
+
 
 const json = (data, status = 200) =>
   Response.json(data, {
