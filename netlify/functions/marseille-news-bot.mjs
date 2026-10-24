@@ -109,5 +109,5 @@ export default async function handler() {
 }
 
 export const config = {
-  schedule: SCHEDULE
+  schedule: "0 */3 * * *"
 };
